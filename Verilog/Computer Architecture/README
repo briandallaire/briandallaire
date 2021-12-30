@@ -1,1 +1,5 @@
 All Computer Architecture Related Verilog/SystemVerilog Code
+
+The ARM pipelined CPU is a combination of the other files. 
+The other files are small steps I took before attempting
+a more complex CPU design
