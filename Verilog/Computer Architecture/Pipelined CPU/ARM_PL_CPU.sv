@@ -78,7 +78,7 @@ module ARM_PL_CPU (clk, reset);
 	
 
 // *************************************************************************************************************//	
-// 																RF Stage													 					 //
+// 						    RF Stage													 					 //
 // *************************************************************************************************************//	
 
 	// IF_ID_Reg takes the current PC value and the instruction from instruction memory and outputs 
