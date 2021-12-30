@@ -17,7 +17,7 @@ module ARM_SC_CPU (clk, reset);
 	
 	logic [63:0] Da, Db, Dw, Dout, PC_curr, PC_next, extendBr26, extendImm12, extendAd19, extendD9, shifted_val, mult_val, AddPC, AddBr, ALUout;
 	logic [63:0] mult_valH;
-   logic [63:0] muxALUSrc, muxBrType;
+   	logic [63:0] muxALUSrc, muxBrType;
 	logic [31:0] inst;
 	logic [25:0] BrAddr26;
 	logic [18:0] CondAddr19;
@@ -61,7 +61,7 @@ module ARM_SC_CPU (clk, reset);
 	// selects the input for the B input of the ALU. This is in effect a 64x4:1 mux that is deciding
 	// between the sign extended Daddr9 value, the zero extended Imm12 value and Db. Since there are
 	// only three inputs, I made the last empty slot just a 0 value input. 
-   mux_4_1_varSize #(.WIDTH(64))  muxALUSr(.selectBits(ALUSrc), .inputBits({64'b0, extendImm12, extendD9, Db}), .dataBits(muxALUSrc));
+   	mux_4_1_varSize #(.WIDTH(64))  muxALUSr(.selectBits(ALUSrc), .inputBits({64'b0, extendImm12, extendD9, Db}), .dataBits(muxALUSrc));
 	
 	// selects the branch type between unconditional and conditional. This is in effect a 64x2:1 mux
 	// that takes the sign extended values of BrAddr26 and CondAddr19. The output of this mux is determined
@@ -87,7 +87,7 @@ module ARM_SC_CPU (clk, reset);
 		
 	// shifter for the shift instructions. Takes the 64-bit input and shifts it by
 	// the amount determined by the shamt bits in either the left or right. The result
-   // is a 64-bit value that is the result of the shift operation.
+   	// is a 64-bit value that is the result of the shift operation.
 	
 	shifter shift (.value(Da), .direction(LorR), .distance(shamt), .result(shifted_val));
 	
