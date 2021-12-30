@@ -1,0 +1,1 @@
+ARM 5-Stage Pipelined CPU. Uses a forwarding unit but does not have a hazard detection unit. Uses delay slots.
