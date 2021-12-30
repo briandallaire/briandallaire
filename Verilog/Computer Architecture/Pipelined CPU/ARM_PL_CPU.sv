@@ -21,7 +21,7 @@ module ARM_PL_CPU (clk, reset);
 	logic [63:0] PC_curr, PC_next, PC_IF_RF, AddPC;
 	logic [63:0] ALUout, ALUoutMEM;
 	logic [63:0] shifted_val, mult_val, mult_valH, shftOrMultAEX, fwrdvalEXA, fwrdvalEXB, mult_valMEM, shifted_valMEM;
-   logic [63:0] muxALUSrc, muxBrType;
+   	logic [63:0] muxALUSrc, muxBrType;
 	logic [63:0] RF_outA, RF_outB, EX_A, EX_B, MEM_B, writeData;
 	logic [31:0] inst, instOut;
 	logic [25:0] BrAddr26;
@@ -35,23 +35,23 @@ module ARM_PL_CPU (clk, reset);
 	logic [4:0] muxAb;
 	logic [3:0] xfer_size;
 	logic [3:0] andOuts;
-	logic [2:0] ALU_Op, ALUOp_IDEX;														// 3-bit control signal
-	logic [1:0] ALUSrc, ALUSrc_IDEX, MemtoReg, Mem2Reg_IDEX, Mem2Reg_EXMEM; // 2-bit control signals
-	logic [1:0] fwrdCntrl_A, fwrdCntrl_B; 												// 2-bit control signals for the forwarding muxes
+	logic [2:0] ALU_Op, ALUOp_IDEX;							// 3-bit control signal
+	logic [1:0] ALUSrc, ALUSrc_IDEX, MemtoReg, Mem2Reg_IDEX, Mem2Reg_EXMEM; 	// 2-bit control signals
+	logic [1:0] fwrdCntrl_A, fwrdCntrl_B; 						// 2-bit control signals for the forwarding muxes
 	logic Reg2Loc, Branch, MemWrite, MemRead, RegWrite, UncondBr, setflags; 
 	logic MemWrite_IDEX, MemRead_IDEX,  RegWrite_IDEX, setflags_IDEX,
-		   MemWrite_EXMEM, MemRead_EXMEM, RegWrite_EXMEM, RegWrite_MEMWR;		// 1-bit control signals
+		   MemWrite_EXMEM, MemRead_EXMEM, RegWrite_EXMEM, RegWrite_MEMWR;	// 1-bit control signals
 
-	logic zero, negative, overflow, carry_out;  										// initial flag signals
-	logic zeroReg, negativeReg, overflReg, carry_oReg; 							// flag registers to store previously set flags
-	logic LorR, LR_EX; 																		// 1-bit signals for determining shift L or R
-	logic notClk; 																				// inverted clock
+	logic zero, negative, overflow, carry_out;  					// initial flag signals
+	logic zeroReg, negativeReg, overflReg, carry_oReg; 				// flag registers to store previously set flags
+	logic LorR, LR_EX; 								// 1-bit signals for determining shift L or R
+	logic notClk; 									// inverted clock
 
-	logic zero_out;																			// used for early CBZ detection
+	logic zero_out;									// used for early CBZ detection
 					 
 
 // *************************************************************************************************************//	
-// 																IF Stage											 							 //
+// 						    IF Stage											 							 //
 // *************************************************************************************************************//	
 
 	// varSize_D_FF represents the program_counter in the CPU. This module takes the 64-bit input
@@ -88,24 +88,23 @@ module ARM_PL_CPU (clk, reset);
 	IF_ID_Reg IFID (.clk, .reset, .PC_in(PC_curr), .PC_out(PC_IF_RF), .instr_in(inst), .instr_out(instOut));
 
 	// labeling key components from 32-bit instruction
+	assign Rn = instOut[9:5];		 		 // labels the first source register
+	assign Rm = instOut[20:16];    				 // labels the second source register
+	assign Rd = instOut[4:0];		 		 // labels the destination register
+	assign shamt = instOut[15:10]; 				 // labels the shift amount (used in R-type instructions)
 	
-	assign Rn = instOut[9:5];		 	// labels the first source register
-	assign Rm = instOut[20:16];    	// labels the second source register
-	assign Rd = instOut[4:0];		 	// labels the destination register
-	assign shamt = instOut[15:10]; 	// labels the shift amount (used in R-type instructions)
+	assign BrAddr26 = instOut[25:0]; 			 // labels what is considered BrAddr26 (used in B-type instructions)
+	//assign extendBr26 = 64'(signed'(BrAddr26)); 		 // sign extends BrAddr26 to 64-bits
+	assign extendBr26 = {{38{BrAddr26[25]}},BrAddr26}; 	 // sign extend, doesn't matter which type
 	
-	assign BrAddr26 = instOut[25:0]; 				 		// labels what is considered BrAddr26 (used in B-type instructions)
-	//assign extendBr26 = 64'(signed'(BrAddr26)); 		// sign extends BrAddr26 to 64-bits
-	assign extendBr26 = {{38{BrAddr26[25]}},BrAddr26}; // sign extend, doesn't matter which type
-	
-	assign CondAddr19 = instOut[23:5]; 				 // labels what is considered CondAddr19 (used in CB-type instructions)
-	assign extendAd19 = 64'(signed'(CondAddr19)); // sign extends CondAddr19 to 64-bits
+	assign CondAddr19 = instOut[23:5]; 			 // labels what is considered CondAddr19 (used in CB-type instructions)
+	assign extendAd19 = 64'(signed'(CondAddr19)); 		 // sign extends CondAddr19 to 64-bits
 	
 	assign Daddr9 = instOut[20:12]; 			 // labels what is considered Daddr9 (used in D-type instructions)
-	assign extendD9 = 64'(signed'(Daddr9)); // sign extends Daddr9 to 64-bits
+	assign extendD9 = 64'(signed'(Daddr9));  		 // sign extends Daddr9 to 64-bits
 	
-	assign Imm12 = instOut[21:10];		 // labels what is considered Imm12 (used in I-type instructions)
-	assign extendImm12 = {52'b0, Imm12}; // zero extends Imm12 to 64-bits
+	assign Imm12 = instOut[21:10];		 		 // labels what is considered Imm12 (used in I-type instructions)
+	assign extendImm12 = {52'b0, Imm12};     		 // zero extends Imm12 to 64-bits
 
 	// not gate used to determine left or right shift since !inst[21] = 1 is left and = 0 is right
 	not #50 notGate1 (LorR, instOut[21]); 
@@ -211,7 +210,7 @@ module ARM_PL_CPU (clk, reset);
 
 	
 // *************************************************************************************************************//	
-// 																Ex Stage													 					 //
+// 						    Ex Stage													 					 //
 // *************************************************************************************************************//	
 	
 	// ID_EX_Reg takes the control signals from the control unit as well as some other values such as
@@ -258,7 +257,7 @@ module ARM_PL_CPU (clk, reset);
 
 
 // *************************************************************************************************************//	
-// 																MEM Stage												 					 //
+// 						     MEM Stage												 					 //
 // *************************************************************************************************************//	
 
 	// EX_MEM_Reg takes the control signals that haven't been used in the previous stage as well as other 
@@ -285,7 +284,7 @@ module ARM_PL_CPU (clk, reset);
 	mux_4_1_varSize #(.WIDTH(64))  muxMtoR (.selectBits(Mem2Reg_EXMEM), .inputBits({mult_valMEM, shifted_valMEM, Dout, ALUoutMEM}), .dataBits(writeData));
 	
 // *************************************************************************************************************//	
-// 																WB Stage													 					 //
+// 						     WB Stage													 					 //
 // *************************************************************************************************************//	
 
 	// MEM_WR_Reg takes the control signals not used in the previous stage as well as other signals such as
