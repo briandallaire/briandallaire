@@ -1,0 +1,4 @@
+This is a lab from my EE 474 Embedded Systems class where we were introduced to hardware port manipulation.
+
+Here, we had to refer to the microcontroller datasheet to find the exact port we wanted to interact with rather
+than using simplified methods such as digitalWrite() in the arduino IDE.
